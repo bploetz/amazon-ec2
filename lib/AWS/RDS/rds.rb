@@ -17,8 +17,12 @@ module AWS
       # @option options [String] :db_security_groups are the list of db security groups to associate with the instance (nil)
       # @option options [String] :availability_zone is the availability_zone to create the instance in (nil)
       # @option options [String] :preferred_maintenance_window in format: ddd:hh24:mi-ddd:hh24:mi (nil)
-      # @option options [String] :backend_retention_period is the number of days which automated backups are retained (1)
+      # @option options [String] :backup_retention_period is the number of days which automated backups are retained (1)
       # @option options [String] :preferred_backup_window is the daily time range for which automated backups are created
+      #
+      # NOTE: Versions of amazon-ec2 through 0.9.10 accepted the option key :backend_retention_period. This
+      #       has been superceded with the more appropriately named option key :backup_retention_period. Support for
+      #       :backend_retention_period will be deprecated in a future release.
       #
       def create_db_instance( options = {})
         raise ArgumentError, "No :db_instance_identifier provided" if options.does_not_have?(:db_instance_identifier)
@@ -28,6 +32,8 @@ module AWS
         raise ArgumentError, "No :master_username provided" if options.does_not_have?(:master_username)
         raise ArgumentError, "No :master_user_password provided" if options.does_not_have?(:master_user_password)
         raise ArgumentError, "No :db_instance_class provided" if options.does_not_have?(:db_instance_class)
+        # TODO: Deprecate support for :backend_retention_period
+        raise ArgumentError, "Both :backend_retention_period and :backup_retention_period provided. Please use :backup_retention_period, as support for :backend_retention_period will be deprecated in a future release" if options.has?(:backend_retention_period) && options.has?(:backup_retention_period)
 
         params = {}
         params['DBInstanceIdentifier'] = options[:db_instance_identifier]
@@ -43,7 +49,12 @@ module AWS
         params["DBSecurityGroups"] = options[:db_security_groups] if options.has?(:db_security_groups)
         params["AvailabilityZone"] = options[:availability_zone] if options.has?(:availability_zone)
         params["PreferredMaintenanceWindow"] = options[:preferred_backup_window] if options.has?(:preferred_backup_window)
-        params["BackupRetentionPeriod"] = options[:backend_retention_period] if options.has?(:backend_retention_period)
+        # TODO: Deprecate support for :backend_retention_period
+        if options.has?(:backend_retention_period)
+          params["BackupRetentionPeriod"] = options[:backend_retention_period] 
+        elsif options.has?(:backup_retention_period)
+          params["BackupRetentionPeriod"] = options[:backup_retention_period] 
+        end
         params["PreferredBackupWindow"] = options[:preferred_backup_window] if options.has?(:preferred_backup_window)
 
         return response_generator(:action => "CreateDBInstance", :params => params)
@@ -344,11 +355,17 @@ module AWS
       # @option options [String] :db_security_groups are the list of db security groups to associate with the instance (nil)
       # @option options [String] :availability_zone is the availability_zone to create the instance in (nil)
       # @option options [String] :preferred_maintenance_window in format: ddd:hh24:mi-ddd:hh24:mi (nil)
-      # @option options [String] :backend_retention_period is the number of days which automated backups are retained (1)
+      # @option options [String] :backup_retention_period is the number of days which automated backups are retained (1)
       # @option options [String] :preferred_backup_window is the daily time range for which automated backups are created
+      #
+      # NOTE: Versions of amazon-ec2 through 0.9.10 accepted the option key :backend_retention_period. This
+      #       has been superceded with the more appropriately named option key :backup_retention_period. Support for
+      #       :backend_retention_period will be deprecated in a future release.
       #
       def modify_db_instance( options = {})
         raise ArgumentError, "No :db_instance_identifier provided" if options.does_not_have?(:db_instance_identifier)
+        # TODO: Deprecate support for :backend_retention_period
+        raise ArgumentError, "Both :backend_retention_period and :backup_retention_period provided. Please use :backup_retention_period, as support for :backend_retention_period will be deprecated in a future release" if options.has?(:backend_retention_period) && options.has?(:backup_retention_period)
 
         params = {}
         params['DBInstanceIdentifier'] = options[:db_instance_identifier]
@@ -364,7 +381,12 @@ module AWS
         params["DBSecurityGroups"] = options[:db_security_groups] if options.has?(:db_security_groups)
         params["AvailabilityZone"] = options[:availability_zone] if options.has?(:availability_zone)
         params["PreferredMaintenanceWindow"] = options[:preferred_backup_window] if options.has?(:preferred_backup_window)
-        params["BackupRetentionPeriod"] = options[:backend_retention_period] if options.has?(:backend_retention_period)
+        # TODO: Deprecate support for :backend_retention_period
+        if options.has?(:backend_retention_period)
+          params["BackupRetentionPeriod"] = options[:backend_retention_period] 
+        elsif options.has?(:backup_retention_period)
+          params["BackupRetentionPeriod"] = options[:backup_retention_period] 
+        end
         params["PreferredBackupWindow"] = options[:preferred_backup_window] if options.has?(:preferred_backup_window)
 
         return response_generator(:action => "ModifyDBInstance", :params => params)
